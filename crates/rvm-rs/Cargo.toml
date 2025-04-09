@@ -1,0 +1,52 @@
+[package]
+name = "rvm-rs"
+authors.workspace = true
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+documentation.workspace = true
+homepage.workspace = true
+
+[dependencies]
+dirs = { workspace = true }
+thiserror = { workspace = true }
+url = { workspace = true, features = ["serde"] }
+semver = { workspace = true, features = ["serde"] }
+serde = { workspace = true, features = ["derive"] }
+reqwest = { workspace = true, features = ["json", "blocking"] }
+fs4 = { workspace = true, features = ["sync"] }
+serde_json.workspace = true
+
+anyhow = { workspace = true, optional = true }
+clap = { workspace = true, optional = true, features = ["derive"] }
+indicatif = { workspace = true, optional = true }
+
+[dev-dependencies]
+expect-test.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true
+
+
+[lib]
+name = "rvm"
+
+[[bin]]
+name = "rvm"
+path = "src/bin/rvm/main.rs"
+required-features = ["cli"]
+
+
+[[bin]]
+name = "resolc"
+path = "src/bin/resolc/main.rs"
+required-features = ["resolc"]
+
+[features]
+default = ["resolc", "cli"]
+
+cli = ["dep:anyhow", "dep:clap", "dep:indicatif"]
+resolc = ["dep:anyhow"]
