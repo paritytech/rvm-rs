@@ -260,7 +260,7 @@ mod test {
 
     #[test]
     fn find_version() {
-        let release: Releases = serde_json::from_str(&release()).unwrap();
+        let release: Releases = serde_json::from_str(release()).unwrap();
         release
             .get_build(&Version::parse("0.1.0-dev.17").unwrap())
             .unwrap()

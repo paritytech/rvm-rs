@@ -282,7 +282,7 @@ mod test {
             "#]];
             expected.assert_eq(&version);
         } else {
-            assert!(false)
+            panic!()
         }
     }
 
@@ -324,7 +324,7 @@ mod test {
             "#]];
             expected.assert_eq(&version);
         } else {
-            assert!(false)
+            panic!()
         }
     }
 
