@@ -38,13 +38,13 @@ rvm = { package = "rvm-rs", path = "crates/rvm-rs", default-features = false }
 semver = "^1.0"
 serde = "^1.0"
 serde_json = "^1.0"
-reqwest = "0.12"
-dirs = "6.0"
+reqwest = { version = "0.12" }
+dirs = "6"
 thiserror = "2"
-url = "2.5.4"
-fs4 = "0.13.1"
-tempfile = { version = "3.19.1" }
-expect-test = { version = "1.5.1" }
+url = "2"
+fs4 = "0.13"
+tempfile = { version = "3" }
+expect-test = { version = "1" }
 
 clap = { version = "4" }
 anyhow = { version = "1" }
