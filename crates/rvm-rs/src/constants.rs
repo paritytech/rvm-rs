@@ -3,8 +3,7 @@ use semver::Version;
 use crate::errors::Error;
 
 /// Repository URL for list.json files with supported Resolc versions
-pub const REPO_URL: &str =
-    "https://raw.githubusercontent.com/paritytech/resolc-bin/refs/heads/main";
+pub const REPO_URL: &str = "https://paritytech.github.io/resolc-bin/";
 
 /// Minimum supported `solc` version.
 pub(crate) const MIN_VERSION: Version = semver::Version::new(0, 8, 0);

@@ -6,6 +6,7 @@ use std::{
 
 use semver::{Comparator, Prerelease, Version};
 use serde::{Deserialize, Serialize};
+use sha2::Digest;
 use url::Url;
 
 use crate::{constants::MIN_VERSION, errors::Error};
@@ -150,9 +151,26 @@ pub struct Build {
     pub(crate) first_supported_solc_version: Version,
     #[serde(rename = "lastSolcVersion")]
     pub(crate) last_supported_solc_version: Version,
+    pub(crate) sha256: String,
 }
 
 impl Build {
+    fn verify_binary(&self, bin: &[u8]) -> Result<(), Error> {
+        let checksum = hex::decode(&self.sha256)?;
+        let checksum_from_binary = {
+            let mut hasher: sha2::Sha256 = Digest::new();
+            hasher.update(bin);
+            hasher.finalize()
+        };
+        if checksum == checksum_from_binary[..] {
+            Ok(())
+        } else {
+            Err(Error::ChecksumValidationError {
+                expected: self.sha256.clone(),
+                actual: hex::encode(checksum_from_binary),
+            })
+        }
+    }
     /// Checks compatibility between selected Resolc and `solc` versions
     ///
     /// # Arguments
@@ -196,8 +214,10 @@ impl Build {
             .get(self.url.as_ref())
             .send()?
             .error_for_status()?;
+        let binary = binary.bytes()?;
+        self.verify_binary(binary.as_ref())?;
 
-        Ok(binary.bytes().map(|x| x.to_vec())?)
+        Ok(binary.to_vec())
     }
 
     pub(crate) fn into_local(self, path: &Path) -> Binary {
@@ -230,31 +250,20 @@ mod test {
         r#"{
             "builds": [
                 {
-                    "path": "resolc-x86_64-unknown-linux-musl+0.1.0-dev.17+commit.6bcd04b2",
                     "name": "resolc-x86_64-unknown-linux-musl",
-                    "version": "0.1.0-dev.17",
-                    "build": "commit.6bcd04b2",
-                    "longVersion": "0.1.0-dev.17+commit.6bcd04b2",
-                    "url": "https://github.com/paritytech/revive-workflow-test/releases/download/v0.1.0-dev.17/resolc-x86_64-unknown-linux-musl",
-                    "firstSolcVersion": "0.8.0",
-                    "lastSolcVersion": "0.8.29"
-                },
-                {
-                    "path": "resolc-x86_64-unknown-linux-musl+0.1.0-dev.18+commit.f1e51fda",
-                    "name": "resolc-x86_64-unknown-linux-musl",
-                    "version": "0.1.0-dev.18",
-                    "build": "commit.f1e51fda",
-                    "longVersion": "0.1.0-dev.18+commit.f1e51fda",
-                    "url": "https://github.com/paritytech/revive-workflow-test/releases/download/v0.1.0-dev.18/resolc-x86_64-unknown-linux-musl",
+                    "version": "0.1.0-dev.13",
+                    "build": "commit.ad331534",
+                    "longVersion": "0.1.0-dev.13+commit.ad331534",
+                    "url": "https://github.com/paritytech/revive/releases/download/v0.1.0-dev.13/resolc-x86_64-unknown-linux-musl",
+                    "sha256": "14d7c165eae626dbe40d182d7f2a435015efb50b1183bf22b0411749106b8c47",
                     "firstSolcVersion": "0.8.0",
                     "lastSolcVersion": "0.8.29"
                 }
             ],
             "releases": {
-                "0.1.0-dev.17": "resolc-x86_64-unknown-linux-musl+0.1.0-dev.17+commit.6bcd04b2",
-                "0.1.0-dev.18": "resolc-x86_64-unknown-linux-musl+0.1.0-dev.18+commit.f1e51fda"
+                "0.1.0-dev.13": "resolc-x86_64-unknown-linux-musl+0.1.0-dev.13+commit.ad331534"
             },
-            "latestRelease": "0.1.0-dev.18"
+            "latestRelease": "0.1.0-dev.13"
         }"#
     }
 
@@ -262,7 +271,7 @@ mod test {
     fn find_version() {
         let release: Releases = serde_json::from_str(release()).unwrap();
         release
-            .get_build(&Version::parse("0.1.0-dev.17").unwrap())
+            .get_build(&Version::parse("0.1.0-dev.13").unwrap())
             .unwrap()
             .check_solc_compat(&Version::new(0, 8, 0))
             .unwrap()
@@ -272,12 +281,12 @@ mod test {
     fn solc_version_support() {
         let build = r#"
         {
-            "path": "resolc-x86_64-unknown-linux-musl+0.1.0-dev.17+commit.6bcd04b2",
             "name": "resolc-x86_64-unknown-linux-musl",
-            "version": "0.1.0-dev.17",
-            "build": "commit.6bcd04b2",
-            "longVersion": "0.1.0-dev.17+commit.6bcd04b2",
-            "url": "https://github.com/paritytech/revive-workflow-test/releases/download/v0.1.0-dev.17/resolc-x86_64-unknown-linux-musl",
+            "version": "0.1.0-dev.13",
+            "build": "commit.ad331534",
+            "longVersion": "0.1.0-dev.13+commit.ad331534",
+            "url": "https://github.com/paritytech/revive/releases/download/v0.1.0-dev.13/resolc-x86_64-unknown-linux-musl",
+            "sha256": "14d7c165eae626dbe40d182d7f2a435015efb50b1183bf22b0411749106b8c47",
             "firstSolcVersion": "0.8.0",
             "lastSolcVersion": "0.8.29"
         }
@@ -287,7 +296,7 @@ mod test {
 
         assert_eq!(
             r#"
-            Unsupported version of `solc` - v0.3.4 for Resolc v0.1.0-dev.17. Only versions ">=0.8.0, <=0.8.29" is supported by this version of Resolc
+            Unsupported version of `solc` - v0.3.4 for Resolc v0.1.0-dev.13. Only versions ">=0.8.0, <=0.8.29" is supported by this version of Resolc
             "#.trim(),
             build
                 .check_solc_compat(&Version::new(0, 3, 4))

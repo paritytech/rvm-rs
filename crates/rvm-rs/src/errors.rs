@@ -16,6 +16,10 @@ pub enum Error {
     #[error("Version of Resolc v{} is not installed.", version)]
     NotInstalled { version: Version },
     #[error(
+        "Checksum validation error occured when checking binary. Expected: {expected}, got: {actual}"
+    )]
+    ChecksumValidationError { expected: String, actual: String },
+    #[error(
         "Unsupported version of `solc` - v{} for Resolc v{}. Only versions \"{}\" is supported by this version of Resolc",
         solc_version,
         resolc_version,
@@ -38,4 +42,6 @@ pub enum Error {
     UrlError(#[from] url::ParseError),
     #[error(transparent)]
     IoError(#[from] std::io::Error),
+    #[error(transparent)]
+    HexDecodign(#[from] hex::FromHexError),
 }

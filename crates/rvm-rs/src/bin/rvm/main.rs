@@ -69,7 +69,6 @@ fn exec(is_offline: bool, rvm: Rvm, manager: VersionManager) -> anyhow::Result<(
             version,
             set_default,
         } => {
-            dbg!(is_offline);
             if is_offline {
                 return Err(Error::CantInstallOffline.into());
             }

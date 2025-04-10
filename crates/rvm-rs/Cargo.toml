@@ -18,6 +18,8 @@ serde = { workspace = true, features = ["derive"] }
 reqwest = { workspace = true, features = ["json", "blocking"] }
 fs4 = { workspace = true, features = ["sync"] }
 serde_json.workspace = true
+sha2 = { workspace = true }
+hex = { workspace = true }
 
 anyhow = { workspace = true, optional = true }
 clap = { workspace = true, optional = true, features = ["derive"] }
