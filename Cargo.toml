@@ -1,0 +1,54 @@
+[workspace]
+members = ["crates/rvm-rs"]
+resolver = "2"
+
+[workspace.package]
+authors = ["Parity Technologies <admin@parity.io>"]
+edition = "2021"
+version = "0.0.1"
+rust-version = "1.83.0"
+license = "Apache-2.0"
+repository = "https://github.com/paritytech/rvm-rs"
+documentation = "https://docs.rs/rvm-rs"
+homepage = "https://www.parity.io/"
+
+[workspace.lints.rust]
+bad_style = "deny"
+improper_ctypes = "deny"
+missing_docs = "deny"
+non_shorthand_field_patterns = "deny"
+no_mangle_generic_items = "deny"
+overflowing_literals = "deny"
+path_statements = "deny"
+patterns_in_fns_without_body = "deny"
+unconditional_recursion = "deny"
+unused_allocation = "deny"
+unused_comparisons = "deny"
+unused_parens = "deny"
+unused_extern_crates = "deny"
+
+[workspace.lints.clippy]
+type_complexity = "allow"
+# Priority -1 means that it can overwritten by other lints, https://rust-lang.github.io/rust-clippy/master/index.html#/lint_groups_priority
+all = { level = "deny", priority = -1 }
+
+
+[workspace.dependencies]
+rvm = { package = "rvm-rs", path = "crates/rvm-rs", default-features = false }
+semver = "^1.0"
+serde = "^1.0"
+serde_json = "^1.0"
+reqwest = { version = "0.12" }
+dirs = "6"
+thiserror = "2"
+url = "2"
+fs4 = "0.13"
+tempfile = { version = "3" }
+expect-test = { version = "1" }
+sha2 = "^0.10"
+hex = { package = "const-hex", version = "1" }
+
+
+clap = { version = "4" }
+anyhow = { version = "1" }
+indicatif = { version = "0.17" }
