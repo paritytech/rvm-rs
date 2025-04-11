@@ -73,10 +73,11 @@ fn exec(is_offline: bool, rvm: Rvm, manager: VersionManager) -> anyhow::Result<(
                 return Err(Error::CantInstallOffline.into());
             }
 
-            if manager.get(&version, None).is_ok() {
+            if manager.is_installed(&version) {
                 println!("Resolc v{} is already installed", version);
                 return Ok(());
             }
+
             let spinner = spinner(format!("Downloading and installing Resolc v{}", version));
             manager.get_or_install(&version, None)?;
             spinner.finish_with_message(format!("Resolc v{} is installed succesfully", version));

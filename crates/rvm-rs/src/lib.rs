@@ -90,6 +90,15 @@ impl VersionManager {
         })
     }
 
+    /// checks whether the requested resolc binary version is installed already
+    ///
+    /// # Arguments
+    ///
+    /// * `resolc_version` - required Resolc version
+    pub fn is_installed(&self, resolc_version: &Version) -> bool {
+        self.fs.path().join(resolc_version.to_string()).exists()
+    }
+
     /// Returns an already present Resolc binary
     ///
     /// # Arguments

@@ -2,6 +2,7 @@ use std::{
     fs,
     io::Write,
     path::{Path, PathBuf},
+    sync::OnceLock,
 };
 
 use fs4::fs_std::FileExt;
@@ -9,23 +10,42 @@ use semver::Version;
 
 use crate::{errors::Error, Build};
 
+const BUILD_FILE_NAME: &str = "build.json";
+
+/// Trait to store and retrieve binaries and their metadata from the filesystem.
+///
+/// global default version of Resolc is stored in `.default_version` in the installation folder.
+///
+/// each Resolc version will installed into <installation_folder/<version>/<binary|build.json>
 pub(crate) trait FsPaths {
     fn new() -> Result<Self, Error>
     where
         Self: Sized;
 
+    /// Path to the storage folder
     fn path(&self) -> &Path;
 
+    fn default_version_path(&self) -> &'static Path {
+        static ONCE: OnceLock<PathBuf> = OnceLock::new();
+        ONCE.get_or_init(|| self.path().join(".default_version"))
+    }
+
+    /// installs the provided binary into `<Self::path>/<binary version>/<stored artifacts>`
+    ///
+    /// # Stored artifacts
+    /// * `binary` - binary itself
+    /// * `build` - binary metadata from the releases file.
     fn install_version(&self, build: &Build, binary_blob: &[u8]) -> Result<(), Error> {
         let version = &build.version;
         let binary_path = &build.name;
         let folder = self.path().join(version.to_string());
+
         let _lock_file = self.create_lock_file(version)?;
 
         fs::create_dir_all(&folder)?;
 
         let mut f = fs::File::create_new(folder.join(binary_path))?;
-        let metadata = fs::File::create_new(folder.join("build.json"))?;
+        let metadata = fs::File::create_new(folder.join(BUILD_FILE_NAME))?;
         serde_json::to_writer(metadata, &build)?;
         f.flush()?;
         #[cfg(target_family = "unix")]
@@ -37,24 +57,29 @@ pub(crate) trait FsPaths {
         f.write_all(binary_blob).map_err(Into::into)
     }
 
+    /// Retrieve default version of Resolc for use if it's present.
     fn get_default_version(&self) -> Result<Version, Error> {
-        std::fs::read_to_string(self.path().join(".default_version"))
+        std::fs::read_to_string(self.default_version_path())
             .map_err(Into::into)
             .and_then(|str| Version::parse(str.trim_matches('/')).map_err(Into::into))
     }
-
+    /// Remove default Resolc version
     fn remove_default(&self) -> Result<(), Error> {
-        std::fs::remove_file(self.path().join(".default_version")).map_err(Into::into)
+        let _lock_file = self.create_lock_file(&Version::new(0, 0, 0))?;
+
+        std::fs::remove_file(self.default_version_path()).map_err(Into::into)
     }
 
+    /// Sets a default version of Resolc to be used globally
     fn set_default_version(&self, version: &Version) -> Result<(), Error> {
         let _lock_file = self.create_lock_file(&Version::new(0, 0, 0))?;
 
-        std::fs::File::create(self.path().join(".default_version"))?
+        std::fs::File::create(self.default_version_path())?
             .write_all(version.to_string().as_bytes())
             .map_err(Into::into)
     }
 
+    /// Build a list of installed binaries using the `build.json` metadata that is stored alongside them.
     fn installed_versions(&self) -> Result<Vec<Build>, Error> {
         let files = std::fs::read_dir(self.path())?
             .filter_map(|e| e.ok())
@@ -66,7 +91,7 @@ pub(crate) trait FsPaths {
             })
             .filter_map(|entry| {
                 let entry = entry;
-                let file = entry.path().join("build.json");
+                let file = entry.path().join(BUILD_FILE_NAME);
                 let file = std::fs::read_to_string(file).ok()?;
                 serde_json::from_str::<Build>(&file).ok()
             })
@@ -74,6 +99,9 @@ pub(crate) trait FsPaths {
         Ok(files)
     }
 
+    /// Will delete the version provided from the filesystem
+    ///
+    /// also unsets the default version if it's the version that is removed
     fn remove_version(&self, version: &Version) -> Result<(), Error> {
         let path = self.path().join(version.to_string());
 
@@ -114,6 +142,9 @@ impl Drop for LockFile {
     }
 }
 
+/// Implementation used by default.
+///
+///
 pub struct DataDir {
     path: PathBuf,
 }

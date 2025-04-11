@@ -19,19 +19,23 @@ fn main() {
 fn runner() -> anyhow::Result<i32> {
     let mut args = std::env::args_os().skip(1).peekable();
     let manager = VersionManager::new(true)?;
-    let bin = 'v: {
-        if let Some(arg) = args.peek() {
-            if let Some(arg) = arg.to_str() {
-                if let Some(stripped) = arg.strip_prefix('+') {
-                    let version = stripped
-                        .parse::<semver::Version>()
-                        .context("failed to parse version specifier")?;
-                    args.next();
-                    break 'v manager.get(&version, None)?;
-                }
-            }
+    let bin = {
+        if let Some(version) = args
+            .peek()
+            .and_then(|str| str.to_str())
+            .and_then(|arg| arg.strip_prefix('+'))
+            .map(|arg| {
+                arg.parse::<semver::Version>()
+                    .context("failed to parse version specifier")
+            })
+            .transpose()
+            .context("failed to parse version specifier")?
+        {
+            args.next();
+            manager.get(&version, None)?
+        } else {
+            manager.get_default()?
         }
-        manager.get_default()?
     };
 
     let bin_path = bin.local().expect("should not fail");
