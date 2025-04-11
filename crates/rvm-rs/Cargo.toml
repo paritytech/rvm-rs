@@ -1,5 +1,7 @@
 [package]
 name = "rvm-rs"
+description = "Resolc compiler version manager"
+
 authors.workspace = true
 edition.workspace = true
 version.workspace = true
