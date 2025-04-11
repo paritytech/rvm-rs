@@ -16,7 +16,7 @@ const BUILD_FILE_NAME: &str = "build.json";
 ///
 /// global default version of Resolc is stored in `.default_version` in the installation folder.
 ///
-/// each Resolc version will installed into <installation_folder/<version>/<binary|build.json>
+/// each Resolc version will installed into `<installation_folder>/<binary version >/<binary|build.json>`
 pub(crate) trait FsPaths {
     fn new() -> Result<Self, Error>
     where
