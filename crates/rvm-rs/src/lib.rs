@@ -348,6 +348,10 @@ mod test {
                     version: "0.1.0-dev.13",
                     solc_req: ">=0.8.0, <=0.8.29",
                 },
+                Remote {
+                    version: "0.1.0-dev.14",
+                    solc_req: ">=0.8.0, <=0.8.29",
+                },
             ]"#]];
 
         expected.assert_eq(&format!("{result:#?}"));
@@ -371,6 +375,10 @@ mod test {
                 Installed {
                     path: "",
                     version: "0.1.0-dev.13",
+                    solc_req: ">=0.8.0, <=0.8.29",
+                },
+                Remote {
+                    version: "0.1.0-dev.14",
                     solc_req: ">=0.8.0, <=0.8.29",
                 },
             ]"#]];
