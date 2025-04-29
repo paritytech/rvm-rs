@@ -21,6 +21,7 @@ reqwest = { workspace = true, default-features = false, features = [
     "json",
     "blocking",
     "rustls-tls",
+    "rustls-tls-native-roots",
 ] }
 fs4 = { workspace = true, features = ["sync"] }
 serde_json.workspace = true
