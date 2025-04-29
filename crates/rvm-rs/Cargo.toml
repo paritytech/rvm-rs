@@ -17,7 +17,12 @@ thiserror = { workspace = true }
 url = { workspace = true, features = ["serde"] }
 semver = { workspace = true, features = ["serde"] }
 serde = { workspace = true, features = ["derive"] }
-reqwest = { workspace = true, features = ["json", "blocking"] }
+reqwest = { workspace = true, default-features = false, features = [
+    "json",
+    "blocking",
+    "rustls-tls",
+    "rustls-tls-native-roots",
+] }
 fs4 = { workspace = true, features = ["sync"] }
 serde_json.workspace = true
 sha2 = { workspace = true }
