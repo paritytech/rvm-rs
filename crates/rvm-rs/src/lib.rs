@@ -144,14 +144,17 @@ impl VersionManager {
         resolc_version: &Version,
         solc_version: Option<Version>,
     ) -> Result<Binary, Error> {
-        if let bin @ Ok(_) = self.get(resolc_version, solc_version) {
-            return bin;
+        match self.get(resolc_version, solc_version) {
+            bin @ Ok(_) => {
+                return bin;
+            }
+            err @ Err(Error::SolcVersionNotSupported { .. }) => return err,
+            _ => (),
         }
 
         if self.offline {
             return Err(Error::CantInstallOffline);
         }
-
         let build = self.releases.get_build(resolc_version)?;
 
         let binary = build.download_binary()?;
@@ -382,6 +385,62 @@ mod test {
                     solc_req: ">=0.8.0, <=0.8.29",
                 },
             ]"#]];
+
+        expected.assert_eq(&format!("{result:#?}"));
+    }
+
+    #[test]
+    fn bad_solc_version() {
+        let manager = VersionManager::new_in_temp();
+        manager
+            .get_or_install(&semver::Version::parse("0.1.0-dev.13").unwrap(), None)
+            .unwrap();
+        let result = manager.get_or_install(
+            &semver::Version::parse("0.1.0-dev.13").unwrap(),
+            Some(semver::Version::parse("0.4.14").unwrap()),
+        );
+        let expected = expect![[r#"
+            Err(
+                SolcVersionNotSupported {
+                    solc_version: Version {
+                        major: 0,
+                        minor: 4,
+                        patch: 14,
+                    },
+                    resolc_version: Version {
+                        major: 0,
+                        minor: 1,
+                        patch: 0,
+                        pre: Prerelease("dev.13"),
+                    },
+                    supported_range: VersionReq {
+                        comparators: [
+                            Comparator {
+                                op: GreaterEq,
+                                major: 0,
+                                minor: Some(
+                                    8,
+                                ),
+                                patch: Some(
+                                    0,
+                                ),
+                                pre: Prerelease(""),
+                            },
+                            Comparator {
+                                op: LessEq,
+                                major: 0,
+                                minor: Some(
+                                    8,
+                                ),
+                                patch: Some(
+                                    29,
+                                ),
+                                pre: Prerelease(""),
+                            },
+                        ],
+                    },
+                },
+            )"#]];
 
         expected.assert_eq(&format!("{result:#?}"));
     }
