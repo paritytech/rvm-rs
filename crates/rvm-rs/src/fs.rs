@@ -38,11 +38,9 @@ pub(crate) trait FsPaths {
     /// * `build` - binary metadata from the releases file.
     fn install_version(&self, build: &Build, binary_blob: &[u8]) -> Result<(), Error> {
         match self.install_inner(build, binary_blob) {
-            ok @ Ok(_) => return ok,
-            Err(Error::IoError(err)) if err.kind() == ErrorKind::AlreadyExists => {
-                return Ok(());
-            }
-            e => return e,
+            ok @ Ok(_) => ok,
+            Err(Error::IoError(err)) if err.kind() == ErrorKind::AlreadyExists => Ok(()),
+            e => e,
         }
     }
 
