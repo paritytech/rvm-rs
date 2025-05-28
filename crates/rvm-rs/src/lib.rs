@@ -460,4 +460,32 @@ mod test {
 
         expected.assert_eq(&format!("{result:#?}"));
     }
+
+    #[test]
+    fn concurrent() {
+        let temp_dir = TempDir::new().unwrap();
+        let temp_dir2 = temp_dir.clone();
+        let thread_1 = std::thread::spawn(move || {
+            let manager = VersionManager {
+                offline: false,
+                fs: Box::new(temp_dir),
+                releases: VersionManager::get_releases().expect("no network"),
+            };
+            manager
+                .get_or_install(&semver::Version::parse("0.1.0-dev.13").unwrap(), None)
+                .unwrap()
+        });
+        let thread_2 = std::thread::spawn(move || {
+            let manager2 = VersionManager {
+                offline: false,
+                fs: Box::new(temp_dir2),
+                releases: VersionManager::get_releases().expect("no network"),
+            };
+            manager2
+                .get_or_install(&semver::Version::parse("0.1.0-dev.13").unwrap(), None)
+                .unwrap()
+        });
+        thread_1.join().unwrap();
+        thread_2.join().unwrap();
+    }
 }

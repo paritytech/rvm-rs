@@ -1,11 +1,10 @@
 use std::{
     fs,
-    io::Write,
+    io::{ErrorKind, Write},
     path::{Path, PathBuf},
     sync::OnceLock,
 };
 
-use fs4::fs_std::FileExt;
 use semver::Version;
 
 use crate::{errors::Error, Build};
@@ -39,8 +38,11 @@ pub(crate) trait FsPaths {
         let version = &build.version;
         let binary_path = &build.name;
         let folder = self.path().join(version.to_string());
-
-        let _lock_file = self.create_lock_file(version)?;
+        match self.try_create_lock_file(version) {
+            Ok(_) => {}
+            Err(Error::IoError(err)) if err.kind() == ErrorKind::AlreadyExists => return Ok(()),
+            Err(e) => return Err(e),
+        };
 
         fs::create_dir_all(&folder)?;
 
@@ -119,6 +121,8 @@ pub(crate) trait FsPaths {
     }
 
     fn create_lock_file(&self, version: &Version) -> Result<LockFile, Error> {
+        use fs4::fs_std::FileExt;
+
         let path = self.path().join(format!(".lock-{version}"));
         let _file = std::fs::File::options()
             .read(true)
@@ -127,6 +131,25 @@ pub(crate) trait FsPaths {
             .write(true)
             .open(&path)?;
         _file.lock_exclusive()?;
+        Ok(LockFile { _file, path })
+    }
+
+    fn try_create_lock_file(&self, version: &Version) -> Result<LockFile, Error> {
+        use fs4::fs_std::FileExt;
+
+        let path = self.path().join(format!(".lock-{version}"));
+        let _file = std::fs::File::options()
+            .read(true)
+            .create(true)
+            .truncate(true)
+            .write(true)
+            .open(&path)?;
+        if _file.try_lock_exclusive()? {
+            return Err(Error::IoError(std::io::Error::new(
+                ErrorKind::AlreadyExists,
+                "Lockifle exists",
+            )));
+        }
         Ok(LockFile { _file, path })
     }
 }
@@ -145,6 +168,7 @@ impl Drop for LockFile {
 /// Implementation used by default.
 ///
 ///
+#[derive(Clone)]
 pub struct DataDir {
     path: PathBuf,
 }
