@@ -3,6 +3,8 @@ use std::{
     io::{ErrorKind, Write},
     path::{Path, PathBuf},
     sync::OnceLock,
+    thread::sleep,
+    time::Duration,
 };
 
 use semver::Version;
@@ -35,12 +37,36 @@ pub(crate) trait FsPaths {
     /// * `binary` - binary itself
     /// * `build` - binary metadata from the releases file.
     fn install_version(&self, build: &Build, binary_blob: &[u8]) -> Result<(), Error> {
+        let mut retries = 0;
+        loop {
+            match self.install_inner(build, binary_blob) {
+                ok @ Ok(_) => return ok,
+                Err(Error::IoError(err)) if err.kind() == ErrorKind::AlreadyExists => {
+                    if retries < 2 {
+                        sleep(Duration::from_millis(250));
+                        #[allow(unused_assignments)]
+                        {
+                            retries += 1;
+                        }
+                        return Ok(());
+                    }
+                    return Err(Error::IoError(err));
+                }
+                e => return e,
+            }
+        }
+    }
+
+    fn install_inner(&self, build: &Build, binary_blob: &[u8]) -> Result<(), Error> {
         let version = &build.version;
         let binary_path = &build.name;
         let folder = self.path().join(version.to_string());
-        match self.try_create_lock_file(version) {
+        match self.create_lock_file(version) {
             Ok(_) => {}
-            Err(Error::IoError(err)) if err.kind() == ErrorKind::AlreadyExists => return Ok(()),
+            Err(Error::IoError(err)) if err.kind() == ErrorKind::AlreadyExists => {
+                sleep(Duration::from_millis(250));
+                return Ok(());
+            }
             Err(e) => return Err(e),
         };
 
@@ -58,7 +84,6 @@ pub(crate) trait FsPaths {
 
         f.write_all(binary_blob).map_err(Into::into)
     }
-
     /// Retrieve default version of Resolc for use if it's present.
     fn get_default_version(&self) -> Result<Version, Error> {
         std::fs::read_to_string(self.default_version_path())
@@ -131,25 +156,6 @@ pub(crate) trait FsPaths {
             .write(true)
             .open(&path)?;
         _file.lock_exclusive()?;
-        Ok(LockFile { _file, path })
-    }
-
-    fn try_create_lock_file(&self, version: &Version) -> Result<LockFile, Error> {
-        use fs4::fs_std::FileExt;
-
-        let path = self.path().join(format!(".lock-{version}"));
-        let _file = std::fs::File::options()
-            .read(true)
-            .create(true)
-            .truncate(true)
-            .write(true)
-            .open(&path)?;
-        if _file.try_lock_exclusive()? {
-            return Err(Error::IoError(std::io::Error::new(
-                ErrorKind::AlreadyExists,
-                "Lockifle exists",
-            )));
-        }
         Ok(LockFile { _file, path })
     }
 }
