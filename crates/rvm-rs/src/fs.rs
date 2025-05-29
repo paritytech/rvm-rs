@@ -3,8 +3,6 @@ use std::{
     io::{ErrorKind, Write},
     path::{Path, PathBuf},
     sync::OnceLock,
-    thread::sleep,
-    time::Duration,
 };
 
 use semver::Version;
@@ -51,7 +49,6 @@ pub(crate) trait FsPaths {
         match self.create_lock_file(version) {
             Ok(_) => {}
             Err(Error::IoError(err)) if err.kind() == ErrorKind::AlreadyExists => {
-                sleep(Duration::from_millis(250));
                 return Ok(());
             }
             Err(e) => return Err(e),
