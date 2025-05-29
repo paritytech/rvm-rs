@@ -1,11 +1,10 @@
 use std::{
     fs,
-    io::Write,
+    io::{ErrorKind, Write},
     path::{Path, PathBuf},
     sync::OnceLock,
 };
 
-use fs4::fs_std::FileExt;
 use semver::Version;
 
 use crate::{errors::Error, Build};
@@ -36,11 +35,24 @@ pub(crate) trait FsPaths {
     /// * `binary` - binary itself
     /// * `build` - binary metadata from the releases file.
     fn install_version(&self, build: &Build, binary_blob: &[u8]) -> Result<(), Error> {
+        match self.install_inner(build, binary_blob) {
+            ok @ Ok(_) => ok,
+            Err(Error::IoError(err)) if err.kind() == ErrorKind::AlreadyExists => Ok(()),
+            e => e,
+        }
+    }
+
+    fn install_inner(&self, build: &Build, binary_blob: &[u8]) -> Result<(), Error> {
         let version = &build.version;
         let binary_path = &build.name;
         let folder = self.path().join(version.to_string());
-
-        let _lock_file = self.create_lock_file(version)?;
+        match self.create_lock_file(version) {
+            Ok(_) => {}
+            Err(Error::IoError(err)) if err.kind() == ErrorKind::AlreadyExists => {
+                return Ok(());
+            }
+            Err(e) => return Err(e),
+        };
 
         fs::create_dir_all(&folder)?;
 
@@ -56,7 +68,6 @@ pub(crate) trait FsPaths {
 
         f.write_all(binary_blob).map_err(Into::into)
     }
-
     /// Retrieve default version of Resolc for use if it's present.
     fn get_default_version(&self) -> Result<Version, Error> {
         std::fs::read_to_string(self.default_version_path())
@@ -119,6 +130,8 @@ pub(crate) trait FsPaths {
     }
 
     fn create_lock_file(&self, version: &Version) -> Result<LockFile, Error> {
+        use fs4::fs_std::FileExt;
+
         let path = self.path().join(format!(".lock-{version}"));
         let _file = std::fs::File::options()
             .read(true)
@@ -145,6 +158,7 @@ impl Drop for LockFile {
 /// Implementation used by default.
 ///
 ///
+#[derive(Clone)]
 pub struct DataDir {
     path: PathBuf,
 }
