@@ -233,7 +233,7 @@ impl VersionManager {
             .collect();
         let mut installed = installed?;
         installed.append(&mut available);
-        installed.sort();
+        installed.sort_by(|a, b| Version::cmp(a.version(), b.version()));
         Ok(installed)
     }
 }
@@ -367,6 +367,10 @@ mod test {
                     version: "0.1.0",
                     solc_req: ">=0.8.0, <=0.8.30",
                 },
+                Remote {
+                    version: "0.2.0",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
             ]"#]];
 
         expected.assert_eq(&format!("{result:#?}"));
@@ -406,6 +410,10 @@ mod test {
                 },
                 Remote {
                     version: "0.1.0",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.2.0",
                     solc_req: ">=0.8.0, <=0.8.30",
                 },
             ]"#]];
