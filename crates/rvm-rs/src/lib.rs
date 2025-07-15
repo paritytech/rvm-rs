@@ -60,8 +60,14 @@ impl VersionManager {
     }
 
     fn get_releases() -> Result<Releases, Error> {
-        let url = Platform::get()?.download_url()?;
+        let url = Platform::get()?.download_url(false)?;
+        let nightly_url = Platform::get()?.download_url(true)?;
         Releases::new(url)
+            .and_then(|releases| Releases::new(nightly_url).map(|nightlies| (releases, nightlies)))
+            .map(|(mut releases, mut nightlies)| {
+                releases.merge(&mut nightlies);
+                releases
+            })
     }
 
     fn get_releases_offline(data: &impl FsPaths) -> Result<Releases, Error> {
@@ -371,6 +377,22 @@ mod test {
                     version: "0.2.0",
                     solc_req: ">=0.8.0, <=0.8.30",
                 },
+                Remote {
+                    version: "0.3.0-nightly.2025.7.8",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.7.9",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.7.15",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
             ]"#]];
 
         expected.assert_eq(&format!("{result:#?}"));
@@ -414,6 +436,22 @@ mod test {
                 },
                 Remote {
                     version: "0.2.0",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.7.8",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.7.9",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.7.15",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0",
                     solc_req: ">=0.8.0, <=0.8.30",
                 },
             ]"#]];

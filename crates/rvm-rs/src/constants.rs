@@ -31,13 +31,18 @@ impl Platform {
         Ok(platform)
     }
 
-    pub(crate) fn download_url(&self) -> Result<url::Url, Error> {
+    pub(crate) fn download_url(&self, nightly: bool) -> Result<url::Url, Error> {
         let platform_path = match self {
             Platform::Linux => "linux",
             Platform::Macos => "macos",
             Platform::Windows => "windows",
         };
-        let url = url::Url::parse(&format!("{REPO_URL}/{platform_path}/list.json"))?;
+        let url = if nightly {
+            format!("{REPO_URL}/nightly/{platform_path}/list.json")
+        } else {
+            format!("{REPO_URL}/{platform_path}/list.json")
+        };
+        let url = url::Url::parse(&url)?;
         Ok(url)
     }
 }
