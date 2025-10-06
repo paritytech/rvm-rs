@@ -26,6 +26,17 @@ impl Releases {
         reqwest::blocking::get(url)?.json().map_err(Into::into)
     }
 
+    pub fn merge(&mut self, other: &mut Self) {
+        // merge builds with nightly
+        self.builds.extend_from_slice(&other.builds);
+        self.builds.dedup_by_key(|i| i.long_version.clone());
+
+        // merge releases with nightly
+        self.releases.append(&mut other.releases);
+
+        // Note latest nightly is not set as latest release.
+    }
+
     /// Returns a build by Resolc version if it's present
     pub fn get_build(&self, version: &Version) -> Result<&Build, Error> {
         self.releases
