@@ -390,7 +390,51 @@ mod test {
                     solc_req: ">=0.8.0, <=0.8.30",
                 },
                 Remote {
+                    version: "0.3.0-nightly.2025.7.18",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.7.23",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.8.9",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.8.10",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.8.12",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.8.13",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.8.20",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.9.3",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.9.29",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.9.30",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
                     version: "0.3.0",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.4.0",
                     solc_req: ">=0.8.0, <=0.8.30",
                 },
             ]"#]];
@@ -451,7 +495,51 @@ mod test {
                     solc_req: ">=0.8.0, <=0.8.30",
                 },
                 Remote {
+                    version: "0.3.0-nightly.2025.7.18",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.7.23",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.8.9",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.8.10",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.8.12",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.8.13",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.8.20",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.9.3",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.9.29",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.3.0-nightly.2025.9.30",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
                     version: "0.3.0",
+                    solc_req: ">=0.8.0, <=0.8.30",
+                },
+                Remote {
+                    version: "0.4.0",
                     solc_req: ">=0.8.0, <=0.8.30",
                 },
             ]"#]];
